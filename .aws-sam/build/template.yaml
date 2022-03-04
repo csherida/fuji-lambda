@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'fuji
+
+  Sample SAM Template for fuji
+
+  '
+Globals:
+  Function:
+    Timeout: 5
+Resources:
+  FujiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: FujiFunction
+      Handler: Handler
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+      Environment:
+        Variables:
+          PARAM1: VALUE
+Outputs:
+  FujiAPI:
+    Description: Set of services to manage Apple Music in Alexa
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  FujiFunction:
+    Description: Fuji Function ARN
+    Value:
+      Fn::GetAtt:
+      - Fuji
+      - Arn
+  HelloWorldFunctionIamRole:
+    Description: Implicit IAM Role created for Fuji functions
+    Value:
+      Fn::GetAtt:
+      - Fuji
+      - Arn
