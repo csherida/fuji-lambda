@@ -1,16 +1,12 @@
-# fuji
+# fuji-lambda
 
-This is a sample template for fuji - Below is a brief explanation of what we have generated for you:
+This application is a set of Lambda functions designed to provide richer Apple Music functionality through Alexa, and close gaps between what Apple and Amazon choose to support.  I expect to develop several features over time, including playlist management and shuffling.  While I am providing the code, I plan to host these services in AWS and provide access for people via their iPhone and Alexa.
 
-```bash
-.
-├── Makefile                    <-- Make to automate build
-├── README.md                   <-- This instructions file
-├── hello-world                 <-- Source code for a lambda function
-│   ├── main.go                 <-- Lambda function code
-│   └── main_test.go            <-- Unit tests
-└── template.yaml
-```
+The directions below come from the AWS SDK for Go which you will need to run locally.  You are of course welcome to take this code an implement it in your own AWS configuration.
+
+I look forward to hearing input and hope to collaborate with others wanting to solve the Apple Music on Alexa limitations.
+
+
 
 ## Requirements
 
