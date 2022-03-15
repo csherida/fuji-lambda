@@ -1,13 +1,9 @@
 package main
 
 import (
-	"encoding/xml"
-	"fuji/alexa"
-	"fuji/apple-music"
+	"fuji-alexa/alexa"
+	"fuji-alexa/apple-music"
 	"github.com/aws/aws-lambda-go/lambda"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 )
 
 func HandleFavoriteAlbumIntent(request alexa.Request) alexa.Response {
@@ -60,25 +56,6 @@ type FeedResponse struct {
 			Link  string `xml:"link"`
 		} `xml:"item"`
 	} `xml:"channel"`
-}
-
-func RequestFeed(mode string) (FeedResponse, error) {
-	endpoint, _ := url.Parse("https://slickdeals.net/newsearch.php")
-	queryParams := endpoint.Query()
-	queryParams.Set("mode", mode)
-	queryParams.Set("searcharea", "deals")
-	queryParams.Set("searchin", "first")
-	queryParams.Set("rss", "1")
-	endpoint.RawQuery = queryParams.Encode()
-	response, err := http.Get(endpoint.String())
-	if err != nil {
-		return FeedResponse{}, err
-	} else {
-		data, _ := ioutil.ReadAll(response.Body)
-		var feedResponse FeedResponse
-		xml.Unmarshal(data, &feedResponse)
-		return feedResponse, nil
-	}
 }
 
 // Handler represents the Handler of lambda

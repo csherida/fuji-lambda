@@ -19,7 +19,7 @@ type Secret struct {
 }
 
 func getSecret() string {
-	secretName := "AppleMusicToken"
+	secretName := "FujiAppleMusicToken"
 	region := "us-east-1"
 
 	// Create a Secrets Manager client
@@ -30,6 +30,7 @@ func getSecret() string {
 	})
 	if err != nil {
 		// Handle session creation error
+		log.Println("Unable to create a New Session while retrieving a secret.")
 		log.Println(err.Error())
 		return ""
 	}

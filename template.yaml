@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  fuji
+  fuji-alexa
   
   Sample SAM Template for fuji
 
@@ -11,7 +11,7 @@ Globals:
     Timeout: 5
 
 Resources:
-  FujiFunction:
+  FujiAlexa:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: .
@@ -32,12 +32,9 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  FujiAPI:
+  FujiAlexa:
     Description: "Set of services to manage Apple Music in Alexa"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  FujiFunction:
-    Description: "Fuji Function ARN"
-    Value: !GetAtt Fuji.Arn
-  HelloWorldFunctionIamRole:
+    Value: arn:aws:lambda:us-east-1:334279318147:function:FujiAlexa
+  FujiAlexaIamRole:
     Description: "Implicit IAM Role created for Fuji functions"
-    Value: !GetAtt Fuji.Arn
+    Value: arn:aws:iam::334279318147:role/service-role/svcFujiAlexa

@@ -13,7 +13,13 @@ func GetAlbum(id int) Album {
 	url := "https://api.music.apple.com/v1/catalog/us/albums/" + strconv.Itoa(id)
 
 	// Create a Bearer string by appending string access token
-	var bearer = "Bearer " + getSecret()
+	var secret = getSecret()
+	if secret == "" {
+		log.Println("Apple Music token is blank.")
+		var album Album
+		return album
+	}
+	var bearer = "Bearer " + secret
 
 	// Create a new request using http
 	req, err := http.NewRequest("GET", url, nil)
@@ -24,6 +30,8 @@ func GetAlbum(id int) Album {
 	// Send req using http Client
 	client := &http.Client{}
 	resp, err := client.Do(req)
+
+	//TODO: Handle 401 errors
 	if err != nil {
 		log.Println("Error on response.\n[ERROR] -", err)
 	}
@@ -140,8 +148,4 @@ type AppleAlbum struct {
 			} `json:"tracks"`
 		} `json:"relationships"`
 	} `json:"data"`
-}
-
-func getAlbums() {
-
 }

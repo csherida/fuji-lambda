@@ -6,7 +6,10 @@ The directions below come from the AWS SDK for Go which you will need to run loc
 
 I look forward to hearing input and hope to collaborate with others wanting to solve the Apple Music on Alexa limitations.
 
-
+To Build...
+GOOS=linux go build -o ~/Temp fuji-alexa
+zip -j ~/Temp/fuji-alexa.zip ~/Temp/fuji-alexa
+Upload Zip file to AWS Lambda and specify fuji-account as the handler
 
 ## Requirements
 
