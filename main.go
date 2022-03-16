@@ -1,49 +1,47 @@
 package main
 
 import (
-	"encoding/xml"
-	"fuji/alexa"
-	"fuji/apple-music"
+	"fuji-alexa/internal/app"
+	alexa2 "fuji-alexa/internal/models/alexa"
 	"github.com/aws/aws-lambda-go/lambda"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 )
 
-func HandleFavoriteAlbumIntent(request alexa.Request) alexa.Response {
+func HandleFavoriteAlbumIntent(request alexa2.Request) alexa2.Response {
 	//return alexa.NewSimpleResponse("Frontpage Deals", "Frontpage deal data here")
-	var builder alexa.SSMLBuilder
+	var builder alexa2.SSMLBuilder
 	builder.Say("Here are your favorite album:")
 	builder.Pause("1000")
-	var album apple_music.Album
-	album = apple_music.GetAlbum(310730204)
+	var album app.Album
+	album = app.GetAlbum(310730204)
 	builder.Say(album.ArtistName)
 	builder.Pause("500")
 	builder.Say(album.Name)
-	return alexa.NewSSMLResponse("Favorite Album", builder.Build())
+	return alexa2.NewSSMLResponse("Favorite Album", builder.Build())
 }
 
-func HandleHelpIntent(request alexa.Request) alexa.Response {
+func HandleHelpIntent(request alexa2.Request) alexa2.Response {
 	//return alexa.NewSimpleResponse("Help", "Help regarding the available commands here")
-	var builder alexa.SSMLBuilder
+	var builder alexa2.SSMLBuilder
 	builder.Say("Here are some of the things you can ask:")
 	builder.Pause("1000")
-	builder.Say("Give me the frontpage deals.")
+	builder.Say("What are my favorite albums.")
 	builder.Pause("1000")
-	builder.Say("Give me the popular deals.")
-	return alexa.NewSSMLResponse("Slick Dealer Help", builder.Build())
+	builder.Say("Shuffle my playlist.")
+	return alexa2.NewSSMLResponse("Fuji Music Help", builder.Build())
 }
 
-func HandleAboutIntent(request alexa.Request) alexa.Response {
-	return alexa.NewSimpleResponse("About", "Slick Dealer was created by Nic Raboy in Tracy, California as an unofficial Slick Deals application.")
+func HandleAboutIntent(request alexa2.Request) alexa2.Response {
+	return alexa2.NewSimpleResponse(
+		"About",
+		"Fuji Music is a project created by Christopher Sheridan to enhance the Apple Music in Alexa.")
 }
 
-func IntentDispatcher(request alexa.Request) alexa.Response {
-	var response alexa.Response
+func IntentDispatcher(request alexa2.Request) alexa2.Response {
+	var response alexa2.Response
 	switch request.Body.Intent.Name {
 	case "FavoriteAlbum":
 		response = HandleFavoriteAlbumIntent(request)
-	case alexa.HelpIntent:
+	case alexa2.HelpIntent:
 		response = HandleHelpIntent(request)
 	case "AboutIntent":
 		response = HandleAboutIntent(request)
@@ -62,27 +60,8 @@ type FeedResponse struct {
 	} `xml:"channel"`
 }
 
-func RequestFeed(mode string) (FeedResponse, error) {
-	endpoint, _ := url.Parse("https://slickdeals.net/newsearch.php")
-	queryParams := endpoint.Query()
-	queryParams.Set("mode", mode)
-	queryParams.Set("searcharea", "deals")
-	queryParams.Set("searchin", "first")
-	queryParams.Set("rss", "1")
-	endpoint.RawQuery = queryParams.Encode()
-	response, err := http.Get(endpoint.String())
-	if err != nil {
-		return FeedResponse{}, err
-	} else {
-		data, _ := ioutil.ReadAll(response.Body)
-		var feedResponse FeedResponse
-		xml.Unmarshal(data, &feedResponse)
-		return feedResponse, nil
-	}
-}
-
 // Handler represents the Handler of lambda
-func Handler(request alexa.Request) (alexa.Response, error) {
+func Handler(request alexa2.Request) (alexa2.Response, error) {
 	return IntentDispatcher(request), nil
 }
 
