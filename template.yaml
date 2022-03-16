@@ -2,8 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   fuji-alexa
-  
-  Sample SAM Template for fuji
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -34,7 +32,7 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   FujiAlexa:
     Description: "Set of services to manage Apple Music in Alexa"
-    Value: arn:aws:lambda:us-east-1:334279318147:function:FujiAlexa
+    Value: arn-to-FujiAlexaFunction
   FujiAlexaIamRole:
     Description: "Implicit IAM Role created for Fuji functions"
-    Value: arn:aws:iam::334279318147:role/service-role/svcFujiAlexa
+    Value: arn-to-svcFujiAlexa

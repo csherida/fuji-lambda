@@ -1,4 +1,4 @@
-package apple_music
+package app
 
 // Retrieves Apple Music Token
 // https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/setting-up.html
@@ -18,8 +18,8 @@ type Secret struct {
 	Value string
 }
 
-func getSecret() string {
-	secretName := "FujiAppleMusicToken"
+func getSecret(secretName string) string {
+	//secretName := "FujiAppleMusicToken"
 	region := "us-east-1"
 
 	// Create a Secrets Manager client

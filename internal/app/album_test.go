@@ -1,4 +1,4 @@
-package apple_music
+package app
 
 import (
 	"reflect"
