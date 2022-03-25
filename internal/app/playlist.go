@@ -9,24 +9,27 @@ import (
 	"strconv"
 )
 
-func GetAlbum(id int) Album {
+func GetPlaylistCount(amazonToken string) int {
 
-	url := "https://api.music.apple.com/v1/catalog/us/albums/" + strconv.Itoa(id)
+	url := "https://api.music.apple.com/v1/me/library/playlists"
 
 	// Create a Bearer string by appending string access token
 	var secret = getSecret("FujiAppleMusicToken")
 	if secret == "" {
 		log.Println("Apple Music token is blank.")
-		var album Album
-		return album
+		return 0
 	}
 	var bearer = "Bearer " + secret
+
+	// Get the Apple User Token associated with this amazon user token
+	var appleUserToken = getAppleUserToken(amazonToken)
 
 	// Create a new request using http
 	req, err := http.NewRequest("GET", url, nil)
 
-	// add authorization header to the req
+	// add authorization header and user token to the req
 	req.Header.Add("Authorization", bearer)
+	req.Header.Add("Music-User-Token", appleUserToken)
 
 	// Send req using http Client
 	client := &http.Client{}
@@ -49,14 +52,5 @@ func GetAlbum(id int) Album {
 	json.Unmarshal(body, &responseObject)
 
 	//TODO: Handle nulls
-	var album Album
-	album.Name = responseObject.Data[0].Attributes.Name
-	album.ArtistName = responseObject.Data[0].Attributes.ArtistName
-
-	return album
-}
-
-type Album struct {
-	ArtistName string
-	Name       string
+	return responseObject.Meta.Total
 }
