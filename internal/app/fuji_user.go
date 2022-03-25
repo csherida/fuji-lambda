@@ -2,31 +2,30 @@ package app
 
 import (
 	"encoding/json"
-	"fuji-alexa/internal/models/apple"
+	"fuji-alexa/internal/models/fuji"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-func GetAlbum(id int) Album {
+func getAppleUserToken(amazonToken string) string {
 
-	url := "https://api.music.apple.com/v1/catalog/us/albums/" + strconv.Itoa(id)
+	url := "https://ff7lyzbjr9.execute-api.us-east-1.amazonaws.com/prod/fujiaccount?amazon-token=" + amazonToken
 
 	// Create a Bearer string by appending string access token
-	var secret = getSecret("FujiAppleMusicToken")
-	if secret == "" {
-		log.Println("Apple Music token is blank.")
-		var album Album
-		return album
+	var apiKey = getSecret("FujiAccountAPIKey")
+	if apiKey == "" {
+		log.Println("Fuji Account API Key is blank.")
+		//TODO: Add error return
+		return ""
 	}
-	var bearer = "Bearer " + secret
 
 	// Create a new request using http
 	req, err := http.NewRequest("GET", url, nil)
 
 	// add authorization header to the req
-	req.Header.Add("Authorization", bearer)
+	req.Header.Add("x-api-key", apiKey)
 
 	// Send req using http Client
 	client := &http.Client{}
@@ -45,18 +44,9 @@ func GetAlbum(id int) Album {
 
 	log.Println("Length of body response: " + strconv.Itoa(len(body)))
 
-	var responseObject apple.AppleResponse
+	var responseObject models.FujiAccount
 	json.Unmarshal(body, &responseObject)
 
-	//TODO: Handle nulls
-	var album Album
-	album.Name = responseObject.Data[0].Attributes.Name
-	album.ArtistName = responseObject.Data[0].Attributes.ArtistName
-
-	return album
-}
-
-type Album struct {
-	ArtistName string
-	Name       string
+	//TODO: Handle nulls and empty strings
+	return responseObject.AppleToken
 }

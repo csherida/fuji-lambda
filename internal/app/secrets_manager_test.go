@@ -12,9 +12,16 @@ func Test_getSecret(t *testing.T) {
 		want string
 	}{
 		{
-			name: "Born to Run",
+			name: "Apple Music Token",
 			args: args{
 				secretName: "FujiAppleMusicToken",
+			},
+			want: "",
+		},
+		{
+			name: "Fuji Account Service API Key",
+			args: args{
+				secretName: "FujiAccountAPIKey",
 			},
 			want: "",
 		},

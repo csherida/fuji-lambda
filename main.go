@@ -4,6 +4,7 @@ import (
 	"fuji-alexa/internal/app"
 	alexa2 "fuji-alexa/internal/models/alexa"
 	"github.com/aws/aws-lambda-go/lambda"
+	"strconv"
 )
 
 func HandleFavoriteAlbumIntent(request alexa2.Request) alexa2.Response {
@@ -17,6 +18,15 @@ func HandleFavoriteAlbumIntent(request alexa2.Request) alexa2.Response {
 	builder.Pause("500")
 	builder.Say(album.Name)
 	return alexa2.NewSSMLResponse("Favorite Album", builder.Build())
+}
+
+func HandleNumberOfPlaylistsIntent(request alexa2.Request) alexa2.Response {
+	var builder alexa2.SSMLBuilder
+	count := app.GetPlaylistCount(request.Session.User.UserID)
+	builder.Say("You have ")
+	builder.Say(strconv.Itoa(count))
+	builder.Say(" playlists in your Apple Music Library")
+	return alexa2.NewSSMLResponse("Playlist Count", builder.Build())
 }
 
 func HandleHelpIntent(request alexa2.Request) alexa2.Response {
@@ -41,6 +51,8 @@ func IntentDispatcher(request alexa2.Request) alexa2.Response {
 	switch request.Body.Intent.Name {
 	case "FavoriteAlbum":
 		response = HandleFavoriteAlbumIntent(request)
+	case "PlaylistCount":
+		response = HandleNumberOfPlaylistsIntent(request)
 	case alexa2.HelpIntent:
 		response = HandleHelpIntent(request)
 	case "AboutIntent":

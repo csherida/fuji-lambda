@@ -1,6 +1,6 @@
 package apple
 
-type AppleAlbum struct {
+type AppleResponse struct {
 	Data []struct {
 		ID         string `json:"id"`
 		Type       string `json:"type"`
@@ -88,4 +88,7 @@ type AppleAlbum struct {
 			} `json:"tracks"`
 		} `json:"relationships"`
 	} `json:"data"`
+	Meta struct {
+		Total int `json:"total"`
+	} `json:"meta"`
 }
