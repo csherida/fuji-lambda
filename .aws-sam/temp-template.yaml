@@ -5,7 +5,7 @@ Resources:
       Timeout: 300
       MemorySize: 128
       Handler: Handler
-      CodeUri: /Users/csheri/go/src/fuji
+      CodeUri: /Users/csheri/go/src/fuji-alexa
       Runtime: go1.x
       Architectures:
         - x86_64
