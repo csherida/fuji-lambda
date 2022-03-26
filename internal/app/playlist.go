@@ -30,9 +30,19 @@ func GetPlaylistCount(amazonToken string) int {
 	return responseObject.Meta.Total
 }
 
-func GetPlaylist(amazonToken string, playlistID string) (*apple.AppleResponse, error) {
+func GetPlaylistTracks(amazonToken string, playlistID string, pageOffset ...int) (*apple.AppleResponse, error) {
 
+	// See if pagination is required
+	offset := 0
+	if len(pageOffset) > 0 {
+		offset = pageOffset[0]
+	}
+
+	// Construct URL and add an offset for pagination in case needed
 	url := "https://api.music.apple.com/v1/me/library/playlists/" + playlistID + "/tracks"
+	if offset > 0 {
+		url += "?offset=" + strconv.Itoa(offset)
+	}
 
 	responseObject, err := fetchAppleMusicData(amazonToken, url)
 	if err != nil {
