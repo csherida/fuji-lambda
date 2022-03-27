@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fuji-alexa/internal/models/apple"
 	"testing"
 )
 
@@ -67,6 +68,40 @@ func Test_calculateOffset(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := calculateOffset(tt.args.trackCount); got != tt.want {
 				t.Errorf("calculateOffset() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getTracks(t *testing.T) {
+	type args struct {
+		amazonToken    string
+		origPlaylistID string
+		pageOffset     []int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *apple.AppleResponse
+		wantErr bool
+	}{
+		{
+			name: "Shuffle Test",
+			args: args{
+				amazonToken:    "amzn1.ask.account.testUser",
+				origPlaylistID: "p.oOlRRflxbK9Q",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getTracks(tt.args.amazonToken, tt.args.origPlaylistID, tt.args.pageOffset...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getTracks() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got.Data[0].Type != "" {
+				t.Errorf("getTracks() got = %v, wanted empty string or nil", got)
 			}
 		})
 	}

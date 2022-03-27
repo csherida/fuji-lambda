@@ -39,20 +39,34 @@ func shuffle(amazonToken string, origPlaylistID string) (string, error) {
 	return "", nil
 }
 
+// This function will get the playlist tracks and scrub it so only IDs are returned
 func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*apple.AppleResponse, error) {
 
-	// See if this is a subsequent page request
+	// See if pagination is required
 	offset := 0
 	if len(pageOffset) > 0 {
 		offset = pageOffset[0]
 	}
 
+	// Call function to retrieve full data set
 	tracks, err := GetPlaylistTracks(amazonToken, origPlaylistID, offset)
 	if err != nil {
-		log.Fatalf("Unable to get playlist to shuffle for: %v", origPlaylistID)
+		log.Fatalf("Unable to shuffle and scrub playlist for playlist ID: %v", origPlaylistID)
 		return nil, err
 	}
-	return tracks, err
+
+	// Create new Apple object to hold just IDs
+	var scrubbedTracks *apple.AppleResponse
+	scrubbedTracks = new(apple.AppleResponse)
+
+	// Loop through returned object and pull out just the ID
+	for _, track := range tracks.Data {
+		var scrubbedTrack apple.Data
+		scrubbedTrack.ID = track.ID
+		scrubbedTracks.Data = append(scrubbedTracks.Data, scrubbedTrack)
+	}
+
+	return scrubbedTracks, nil
 }
 
 // This function calculates the pagination and how many times we have to call Apple Music
