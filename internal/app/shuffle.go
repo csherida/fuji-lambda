@@ -54,3 +54,12 @@ func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*a
 	}
 	return tracks, err
 }
+
+// This function calculates the pagination and how many times we have to call Apple Music
+func calculateOffset(trackCount int) int {
+	offsetCount := trackCount / 100
+	if trackCount%100 > 0 {
+		offsetCount++
+	}
+	return offsetCount
+}
