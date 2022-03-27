@@ -67,7 +67,7 @@ func Test_calculateOffset(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := calculateOffset(tt.args.trackCount); got != tt.want {
-				t.Errorf("calculateOffset() = %v, want %v", got, tt.want)
+				t.Errorf("calculateOffset() = %v, doNotWant %v", got, tt.want)
 			}
 		})
 	}
@@ -86,7 +86,7 @@ func Test_getTracks(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Shuffle Test",
+			name: "Shuffle Get Tracks Test",
 			args: args{
 				amazonToken:    "amzn1.ask.account.testUser",
 				origPlaylistID: "p.oOlRRflxbK9Q",
@@ -100,8 +100,43 @@ func Test_getTracks(t *testing.T) {
 				t.Errorf("getTracks() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got.Data[0].Type != "" {
+			if got.Data[0].ID != "" {
 				t.Errorf("getTracks() got = %v, wanted empty string or nil", got)
+			}
+		})
+	}
+}
+
+func Test_shuffle(t *testing.T) {
+	type args struct {
+		amazonToken    string
+		origPlaylistID string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		doNotWant string
+		wantErr   bool
+	}{
+		{
+			name: "Shuffle Test and Write to New Playlist",
+			args: args{
+				amazonToken:    "amzn1.ask.account.testUser",
+				origPlaylistID: "p.oOlRRflxbK9Q",
+			},
+			doNotWant: "",
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := shuffle(tt.args.amazonToken, tt.args.origPlaylistID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("shuffle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got == tt.doNotWant {
+				t.Errorf("shuffle() got = %v, doNotWant %v", got, tt.doNotWant)
 			}
 		})
 	}

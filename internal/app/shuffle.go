@@ -17,15 +17,15 @@ func shuffle(amazonToken string, origPlaylistID string) (string, error) {
 
 	tracks, err := getTracks(amazonToken, origPlaylistID)
 
-	log.Printf("Ordered first track: %v", tracks.Data[0].Attributes.Name)
-	log.Printf("Ordered last track: %v", tracks.Data[len(tracks.Data)-1].Attributes.Name)
+	log.Printf("Ordered first track: %v", tracks.Data[0].ID)
+	log.Printf("Ordered last track: %v", tracks.Data[len(tracks.Data)-1].ID)
 
 	// Shuffle the list
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(tracks.Data), func(i, j int) { tracks.Data[i], tracks.Data[j] = tracks.Data[j], tracks.Data[i] })
 
-	log.Printf("Shuffled first track: %v", tracks.Data[0].Attributes.Name)
-	log.Printf("Shuffled last track: %v", tracks.Data[len(tracks.Data)-1].Attributes.Name)
+	log.Printf("Shuffled first track: %v", tracks.Data[0].ID)
+	log.Printf("Shuffled last track: %v", tracks.Data[len(tracks.Data)-1].ID)
 
 	// TODO: create new playlist, checking that the Fuji folder exists
 	newPlaylistID := "p.zpGExIm2pvM5"
@@ -36,11 +36,11 @@ func shuffle(amazonToken string, origPlaylistID string) (string, error) {
 	}
 
 	// TODO: return name of new playlist, will likely have to iterate through all playlists
-	return "", nil
+	return "Not Yet Implemented", nil
 }
 
 // This function will get the playlist tracks and scrub it so only IDs are returned
-func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*apple.AppleResponse, error) {
+func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*apple.AppleTrackRequest, error) {
 
 	// See if pagination is required
 	offset := 0
@@ -56,12 +56,12 @@ func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*a
 	}
 
 	// Create new Apple object to hold just IDs
-	var scrubbedTracks *apple.AppleResponse
-	scrubbedTracks = new(apple.AppleResponse)
+	var scrubbedTracks *apple.AppleTrackRequest
+	scrubbedTracks = new(apple.AppleTrackRequest)
 
 	// Loop through returned object and pull out just the ID
 	for _, track := range tracks.Data {
-		var scrubbedTrack apple.Data
+		var scrubbedTrack apple.TrackData
 		scrubbedTrack.ID = track.ID
 		scrubbedTracks.Data = append(scrubbedTracks.Data, scrubbedTrack)
 	}

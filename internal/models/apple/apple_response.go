@@ -1,7 +1,7 @@
 package apple
 
 type AppleResponse struct {
-	Data []Data `json:"Data"`
+	Data []Data `json:"data"`
 	Meta struct {
 		Total int `json:"total"`
 	} `json:"meta"`

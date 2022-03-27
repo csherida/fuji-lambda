@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func AddTracksToPlaylist(amazonToken string, playlistID string, tracks apple.AppleResponse) error {
+func AddTracksToPlaylist(amazonToken string, playlistID string, tracks apple.AppleTrackRequest) error {
 
 	url := "https://api.music.apple.com/v1/me/library/playlists/" + playlistID + "/tracks"
 	err := postAppleMusicData(amazonToken, url, tracks)

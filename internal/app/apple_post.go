@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func postAppleMusicData(amazonToken string, url string, tracks apple.AppleResponse) error {
+func postAppleMusicData(amazonToken string, url string, tracks apple.AppleTrackRequest) error {
 
 	// Create a Bearer string by appending string access token
 	var secret = getSecret("FujiAppleMusicToken")
@@ -42,7 +42,7 @@ func postAppleMusicData(amazonToken string, url string, tracks apple.AppleRespon
 	resp, err := client.Do(req)
 
 	//TODO: Handle 401, 404 errors
-	if err != nil {
+	if (err != nil) || (resp.StatusCode >= 400) {
 		log.Println("Error on response.\n[ERROR] -", err)
 		return err
 	}
