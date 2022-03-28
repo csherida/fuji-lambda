@@ -115,7 +115,7 @@ func TestFindPlaylist(t *testing.T) {
 			name: "Find Chill Tunes playlist", // specific to Chris Sheridan's library
 			args: args{
 				amazonToken:      "amzn1.ask.account.testUser",
-				playlistNameRqst: "All Chill Tunes",
+				playlistNameRqst: "all chill tunes",
 			},
 			want: "p.5x1WhOxAz9v",
 		},

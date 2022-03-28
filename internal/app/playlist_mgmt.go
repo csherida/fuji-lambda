@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -111,7 +112,10 @@ func getPlaylistsFromApple(amazonToken string, offset int) (*models.FujiPlaylist
 	// Scrub off unnecessary data
 	var playlists []models.FujiPlaylist
 	for _, playlist := range responseObject.Data {
-		newPlaylist := models.FujiPlaylist{ID: playlist.ID, Name: playlist.Attributes.Name}
+		newPlaylist := models.FujiPlaylist{
+			ID:   playlist.ID,
+			Name: strings.ToLower(playlist.Attributes.Name),
+		}
 		playlists = append(playlists, newPlaylist)
 	}
 

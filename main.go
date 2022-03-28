@@ -5,6 +5,7 @@ import (
 	alexa2 "fuji-alexa/internal/models/alexa"
 	"github.com/aws/aws-lambda-go/lambda"
 	"strconv"
+	"strings"
 )
 
 func HandleFavoriteAlbumIntent(request alexa2.Request) alexa2.Response {
@@ -32,7 +33,7 @@ func HandleNumberOfPlaylistsIntent(request alexa2.Request) alexa2.Response {
 func HandleShuffleIntent(request alexa2.Request) alexa2.Response {
 	var builder alexa2.SSMLBuilder
 
-	playlistName := request.Body.Intent.Slots["playlistName"].Value
+	playlistName := strings.ToLower(request.Body.Intent.Slots["playlistName"].Value)
 	playlistID := app.FindPlaylist(request.Session.User.UserID, playlistName)
 
 	if playlistID == "" {
