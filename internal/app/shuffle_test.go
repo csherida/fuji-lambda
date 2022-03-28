@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fuji-alexa/internal/models/apple"
 	"testing"
 )
 
@@ -66,7 +65,7 @@ func Test_calculateOffset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := calculateOffset(tt.args.trackCount); got != tt.want {
+			if got := calculateOffset(tt.args.trackCount, 100); got != tt.want {
 				t.Errorf("calculateOffset() = %v, doNotWant %v", got, tt.want)
 			}
 		})
@@ -82,7 +81,7 @@ func Test_getTracks(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *apple.AppleResponse
+		want    int
 		wantErr bool
 	}{
 		{
@@ -91,6 +90,16 @@ func Test_getTracks(t *testing.T) {
 				amazonToken:    "amzn1.ask.account.testUser",
 				origPlaylistID: "p.oOlRRflxbK9Q",
 			},
+			want:    1,
+			wantErr: false,
+		},
+		{
+			name: "No tracks exist for shuffle getTracks()",
+			args: args{
+				amazonToken:    "amzn1.ask.account.testUser",
+				origPlaylistID: "p.111111111111",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -100,44 +109,9 @@ func Test_getTracks(t *testing.T) {
 				t.Errorf("getTracks() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got.Data[0].ID != "" {
-				t.Errorf("getTracks() got = %v, wanted empty string or nil", got)
+			if (err == nil) && (len(got.Data) < tt.want) {
+				t.Errorf("getTracks() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
-
-/*
-func Test_shuffle(t *testing.T) {
-	type args struct {
-		tracks    apple.AppleTrackRequest
-	}
-	tests := []struct {
-		name      string
-		args      args
-		doNotWant string
-		wantErr   bool
-	}{
-		{
-			name: "Test Shuffle",
-			args: args{
-				tracks: apple.AppleTrackRequest{Data: new(apple.TrackData) [apple.TrackData{ID: "abcdefg"},]}
-			},
-			doNotWant: "",
-			wantErr:   false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := shuffle(tt.args.amazonToken, tt.args.origPlaylistID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("shuffle() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got == tt.doNotWant {
-				t.Errorf("shuffle() got = %v, doNotWant %v", got, tt.doNotWant)
-			}
-		})
-	}
-}
-*/

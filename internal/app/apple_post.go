@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fuji-alexa/internal/models/apple"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -41,20 +40,15 @@ func postAppleMusicData(amazonToken string, url string, tracks apple.AppleTrackR
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	//TODO: Handle 401, 404 errors
 	if (err != nil) || (resp.StatusCode >= 400) {
 		log.Println("Error on response.\n[ERROR] -", err)
+		if err == nil {
+			err = errors.New("Received a status code of " + strconv.Itoa(resp.StatusCode) + " for " + url)
+		}
 		return err
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("Error while reading the response bytes:", err)
-		return err
-	}
-
-	log.Println("Length of body response: " + strconv.Itoa(len(body)))
-
+	// Assume no response body needs to be parsed for the posting
 	return nil
 }

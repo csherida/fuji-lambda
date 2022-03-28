@@ -35,9 +35,11 @@ func fetchAppleMusicData(amazonToken string, url string) (*apple.AppleResponse, 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	//TODO: Handle 401 errors
-	if err != nil {
+	if (err != nil) || (resp.StatusCode >= 400) {
 		log.Println("Error on response.\n[ERROR] -", err)
+		if err == nil {
+			err = errors.New("Received a status code of " + strconv.Itoa(resp.StatusCode) + " for " + url)
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -47,8 +49,6 @@ func fetchAppleMusicData(amazonToken string, url string) (*apple.AppleResponse, 
 		log.Println("Error while reading the response bytes:", err)
 		return nil, err
 	}
-
-	log.Println("Length of body response: " + strconv.Itoa(len(body)))
 
 	var responseObject apple.AppleResponse
 	json.Unmarshal(body, &responseObject)

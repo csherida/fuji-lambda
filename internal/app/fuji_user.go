@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 )
 
+// TODO: this is very dangerous to have at a global variable.  Need to create a map for each user.
 var appleUserToken string
 
 func getAppleUserToken(amazonToken string) string {
@@ -47,8 +47,6 @@ func getAppleUserToken(amazonToken string) string {
 	if err != nil {
 		log.Println("Error while reading the response bytes:", err)
 	}
-
-	log.Println("Length of body response: " + strconv.Itoa(len(body)))
 
 	var responseObject models.FujiAccount
 	json.Unmarshal(body, &responseObject)
