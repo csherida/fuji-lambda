@@ -9,7 +9,13 @@ import (
 	"strconv"
 )
 
+var appleUserToken string
+
 func getAppleUserToken(amazonToken string) string {
+
+	if appleUserToken != "" {
+		return appleUserToken
+	}
 
 	url := "https://ff7lyzbjr9.execute-api.us-east-1.amazonaws.com/prod/fujiaccount?amazon-token=" + amazonToken
 
@@ -46,6 +52,9 @@ func getAppleUserToken(amazonToken string) string {
 
 	var responseObject models.FujiAccount
 	json.Unmarshal(body, &responseObject)
+
+	// Cache value
+	appleUserToken = responseObject.AppleToken
 
 	//TODO: Handle nulls and empty strings
 	return responseObject.AppleToken

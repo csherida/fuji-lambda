@@ -29,6 +29,19 @@ func HandleNumberOfPlaylistsIntent(request alexa2.Request) alexa2.Response {
 	return alexa2.NewSSMLResponse("Playlist Count", builder.Build())
 }
 
+func HandleShuffleIntent(request alexa2.Request) alexa2.Response {
+	var builder alexa2.SSMLBuilder
+	// TODO: capture name spoken by user to Alexa
+	newName, err := app.ShufflePlaylist(request.Session.User.UserID, "All Chill Tunes")
+	if err != nil {
+		builder.Say("Apologies.  I am unable to shuffle the playlist at this moment.")
+		return alexa2.NewSSMLResponse("Playlist Shuffled", builder.Build())
+	}
+
+	builder.Say("We have shuffled your playlists into a new playlist called " + newName)
+	return alexa2.NewSSMLResponse("Playlist Shuffled", builder.Build())
+}
+
 func HandleHelpIntent(request alexa2.Request) alexa2.Response {
 	//return alexa.NewSimpleResponse("Help", "Help regarding the available commands here")
 	var builder alexa2.SSMLBuilder
@@ -53,6 +66,8 @@ func IntentDispatcher(request alexa2.Request) alexa2.Response {
 		response = HandleFavoriteAlbumIntent(request)
 	case "PlaylistCount":
 		response = HandleNumberOfPlaylistsIntent(request)
+	case "ShufflePlaylist":
+		response = HandleShuffleIntent(request)
 	case alexa2.HelpIntent:
 		response = HandleHelpIntent(request)
 	case "AboutIntent":

@@ -25,6 +25,13 @@ func Test_getSecret(t *testing.T) {
 			},
 			want: "",
 		},
+		{
+			name: "Apple Music Token from cache",
+			args: args{
+				secretName: "FujiAppleMusicToken",
+			},
+			want: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

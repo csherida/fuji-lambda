@@ -18,8 +18,15 @@ type Secret struct {
 	Value string
 }
 
+var secretMap = make(map[string]string)
+
 func getSecret(secretName string) string {
-	//secretName := "FujiAppleMusicToken"
+
+	// return cached value if the secret has already been fetched
+	if secretMap[secretName] != "" {
+		return secretMap[secretName]
+	}
+
 	region := "us-east-1"
 
 	// Create a Secrets Manager client
@@ -108,9 +115,12 @@ func getSecret(secretName string) string {
 	}
 
 	// Parse key/value string
-	secretMap := map[string]string{}
-	json.Unmarshal([]byte(secretStringJson), &secretMap)
+	tempSecretMap := map[string]string{}
+	json.Unmarshal([]byte(secretStringJson), &tempSecretMap)
+
+	// Cache the value
+	secretMap[secretName] = tempSecretMap[secretName]
 
 	// Return secret
-	return secretMap[secretName]
+	return tempSecretMap[secretName]
 }
