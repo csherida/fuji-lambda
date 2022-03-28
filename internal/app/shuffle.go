@@ -4,6 +4,7 @@ import (
 	"fuji-alexa/internal/models/apple"
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -17,20 +18,59 @@ func ShufflePlaylist(amazonToken string, origPlaylistID string) (string, error) 
 	scrubbedTracks := scrubTracks(tracks)
 	scrubbedTracks = shuffle(scrubbedTracks)
 
-	//TODO: Handle pagination
+	//Check for pagination.  For Apple, it's playlists with over 100 tracks
+	offsetCount := calculateOffset(tracks.Meta.Total)
+	if offsetCount > 1 {
+		var tracksMap sync.Map
+		wg := sync.WaitGroup{}
+
+		//Remember, we've already called it once, so this is for subsequent calls
+		for i := 1; i < offsetCount; i++ {
+			wg.Add(1)
+			go func(idx int) {
+				newTracks, err := getTracks(amazonToken, origPlaylistID, idx*100)
+				if err != nil {
+					log.Fatalf("Unable to rtrieve tracks for offset %v in playlist %v", i, origPlaylistID)
+					panic(err)
+				}
+				scrubbedNewTracks := scrubTracks(newTracks)
+				//scrubbedTracks.Data = append(scrubbedTracks.Data, scrubbedNewTracks.Data...)
+				tracksMap.Store(idx, scrubbedNewTracks.Data)
+				log.Printf("Received tracks for offset %v in playlist %v", i, origPlaylistID)
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+
+		offsetMapCount := lenSyncMap(&tracksMap)
+		log.Printf("Number of offsets captured: %v", offsetMapCount)
+
+		tracksMap.Range(func(key, value interface{}) bool {
+			tracks2 := value.([]apple.TrackData)
+			scrubbedTracks.Data = append(scrubbedTracks.Data, tracks2...)
+			return true
+		})
+	}
 
 	//TODO: Lookup playlist ID by name
 
-	// TODO: create new playlist, checking that the Fuji folder exists
-	newPlaylistID := "p.zpGExIm2pvM5"
-	err = AddTracksToPlaylist(amazonToken, newPlaylistID, *scrubbedTracks)
+	scrubbedTracks = shuffle(scrubbedTracks)
+
+	// TODO: check that the Fuji folder exists
+	// TODO: feed in name of requested playlist
+	newPlaylist, err := CreatePlaylist(amazonToken, "All Chill Tunes")
+	if err != nil {
+		log.Fatalf("Unable to create a new playlist")
+		return "", err
+	}
+	err = AddTracksToPlaylist(amazonToken, newPlaylist.PlaylistID, *scrubbedTracks)
 
 	if err != nil {
-		log.Fatalf("Unable to add tracks to new, suffled playlist: %v", newPlaylistID)
+		log.Fatalf("Unable to add tracks to new, suffled playlist: %v", newPlaylist.PlaylistID)
 		return "", err
 	}
 
-	return "Not Yet Implemented", nil
+	return newPlaylist.Name, nil
 }
 
 func shuffle(tracks *apple.AppleTrackRequest) *apple.AppleTrackRequest {
@@ -92,4 +132,14 @@ func calculateOffset(trackCount int) int {
 		offsetCount++
 	}
 	return offsetCount
+}
+
+// Quick function to see how big the map is
+func lenSyncMap(m *sync.Map) int {
+	var i int
+	m.Range(func(k, v interface{}) bool {
+		i++
+		return true
+	})
+	return i
 }

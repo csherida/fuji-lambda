@@ -19,7 +19,7 @@ func TestShufflePlaylist(t *testing.T) {
 			name: "Shuffle Test and Write to New Playlist",
 			args: args{
 				amazonToken: "amzn1.ask.account.testUser",
-				playlistID:  "p.oOlRRflxbK9Q",
+				playlistID:  "p.5x1WhOxAz9v", //"p.oOlRRflxbK9Q",
 			},
 		},
 	}
