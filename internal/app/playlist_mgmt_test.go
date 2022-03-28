@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"strings"
 	"testing"
 )
@@ -86,6 +87,9 @@ func TestGetPlaylists(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetPlaylists(tt.args.amazonToken)
+			for _, playlist := range got.FujiPlaylist {
+				log.Printf("%v %v", playlist.ID, playlist.Name)
+			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetPlaylists() error = %v, wantErr %v", err, tt.wantErr)
 				return
