@@ -66,7 +66,7 @@ func Test_calculateOffset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := calculateOffset(tt.args.trackCount); got != tt.want {
+			if got := calculateOffset(tt.args.trackCount, 100); got != tt.want {
 				t.Errorf("calculateOffset() = %v, doNotWant %v", got, tt.want)
 			}
 		})

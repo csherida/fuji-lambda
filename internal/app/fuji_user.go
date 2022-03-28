@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// TODO: this is very dangerous to have at a global variable.  Need to create a map for each user.
 var appleUserToken string
 
 func getAppleUserToken(amazonToken string) string {

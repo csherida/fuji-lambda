@@ -11,19 +11,9 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
-
-func AddTracksToPlaylist(amazonToken string, playlistID string, tracks apple.AppleTrackRequest) error {
-
-	url := "https://api.music.apple.com/v1/me/library/playlists/" + playlistID + "/tracks"
-	err := postAppleMusicData(amazonToken, url, tracks)
-	if err != nil {
-		log.Fatalf("Unable to add tracks for Amazon Token %v and playlist %v.", amazonToken, playlistID)
-		return err
-	}
-	return nil
-}
 
 func GetPlaylistCount(amazonToken string) int {
 
@@ -31,37 +21,86 @@ func GetPlaylistCount(amazonToken string) int {
 
 	responseObject, err := fetchAppleMusicData(amazonToken, url)
 	if err != nil {
-		log.Fatalf("Unalbe to get user's playlist for %v\n", err)
+		log.Fatalf("Unalbe to get user's playlist count for %v\n", err)
 		return 0
 	}
 
 	return responseObject.Meta.Total
 }
 
-func GetPlaylistTracks(amazonToken string, playlistID string, pageOffset ...int) (*apple.AppleResponse, error) {
+func GetPlaylists(amazonToken string) (*models.FujiPlaylists, error) {
 
-	// See if pagination is required
-	offset := 0
-	if len(pageOffset) > 0 {
-		offset = pageOffset[0]
-	}
-
-	// Construct URL and add an offset for pagination in case needed
-	url := "https://api.music.apple.com/v1/me/library/playlists/" + playlistID + "/tracks"
-	if offset > 0 {
-		url += "?offset=" + strconv.Itoa(offset)
-	}
-
-	responseObject, err := fetchAppleMusicData(amazonToken, url)
+	// Make the initial call
+	fujiPlaylists, err := getPlaylistsFromApple(amazonToken, 0)
 	if err != nil {
-		log.Fatalf("Unable to shuffle playlist for playlist ID: %v", playlistID)
+		log.Fatalf("Unalbe to get user's playlist for %v\n", err)
 		return nil, err
 	}
 
-	trackCount := responseObject.Meta.Total
-	log.Println("Number of tracks in the playlist: " + strconv.Itoa(trackCount))
+	// Apple Music APIs paginate at 25 playlists
+	if fujiPlaylists.OverallPlaylistCount <= 25 {
+		return fujiPlaylists, nil
+	}
 
-	return responseObject, nil
+	// If we have more than 25, the let's fan-out to capture them all
+	offsetCount := calculateOffset(fujiPlaylists.OverallPlaylistCount, 25)
+	var tracksMap sync.Map
+	wg := sync.WaitGroup{}
+
+	//Remember, we've already called it once, so this is for subsequent calls
+	for i := 1; i < offsetCount; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			newPlaylists, err := getPlaylistsFromApple(amazonToken, idx*25)
+			if err != nil {
+				log.Fatalf("Unable to rtrieve playlist for offset %v", i)
+				panic(err)
+			}
+			// While slice appending is likely thread-safe, giving a dedicated memory space just in case
+			tracksMap.Store(idx, newPlaylists.FujiPlaylist)
+			log.Printf("Received playlists for offset %v.", i)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	offsetMapCount := lenSyncMap(&tracksMap)
+	log.Printf("Number of offsets captured: %v", offsetMapCount)
+
+	tracksMap.Range(func(key, value interface{}) bool {
+		playlistFromMap := value.([]models.FujiPlaylist)
+		fujiPlaylists.FujiPlaylist = append(fujiPlaylists.FujiPlaylist, playlistFromMap...)
+		return true
+	})
+
+	return fujiPlaylists, nil
+}
+
+func getPlaylistsFromApple(amazonToken string, offset int) (*models.FujiPlaylists, error) {
+
+	// Construct the URL
+	url := "https://api.music.apple.com/v1/me/library/playlists"
+	if offset > 0 {
+		url = url + "?offset=" + strconv.Itoa(offset)
+	}
+
+	// Call Apple's APIs
+	responseObject, err := fetchAppleMusicData(amazonToken, url)
+	if err != nil {
+		log.Fatalf("Unalbe to get user's playlist for %v\n", err)
+		return nil, err
+	}
+
+	// Scrub off unnecessary data
+	var playlists []models.FujiPlaylist
+	for _, playlist := range responseObject.Data {
+		newPlaylist := models.FujiPlaylist{ID: playlist.ID, Name: playlist.Attributes.Name}
+		playlists = append(playlists, newPlaylist)
+	}
+
+	// Box up the response and send
+	fujiPlaylists := models.FujiPlaylists{FujiPlaylist: playlists, OverallPlaylistCount: responseObject.Meta.Total}
+	return &fujiPlaylists, nil
 }
 
 func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPlaylist, error) {
@@ -77,6 +116,7 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 	var appleUserToken = getAppleUserToken(amazonToken)
 
 	// Setup request body
+	// TODO: Do a literal instantiation of playlist request
 	rand.Seed(time.Now().UnixNano())
 	newPlaylistName := origPlaylistName + " " + strconv.Itoa(rand.Intn(999-1))
 	playlistRequest := apple.PlaylistRequest{}
@@ -103,7 +143,6 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	//TODO: Handle 401, 404 errors
 	if (err != nil) || (resp.StatusCode >= 400) {
 		log.Println("Error on response trying to create a playlist.\n[ERROR] -", err)
 		return nil, err
@@ -120,5 +159,5 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 	var responseObject apple.AppleResponse
 	json.Unmarshal(body, &responseObject)
 
-	return &models.FujiPlaylist{PlaylistID: responseObject.Data[0].ID, Name: newPlaylistName}, nil
+	return &models.FujiPlaylist{ID: responseObject.Data[0].ID, Name: newPlaylistName}, nil
 }

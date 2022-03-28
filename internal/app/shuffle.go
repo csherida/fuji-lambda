@@ -19,7 +19,7 @@ func ShufflePlaylist(amazonToken string, origPlaylistID string) (string, error) 
 	scrubbedTracks = shuffle(scrubbedTracks)
 
 	//Check for pagination.  For Apple, it's playlists with over 100 tracks
-	offsetCount := calculateOffset(tracks.Meta.Total)
+	offsetCount := calculateOffset(tracks.Meta.Total, 100)
 	if offsetCount > 1 {
 		var tracksMap sync.Map
 		wg := sync.WaitGroup{}
@@ -63,10 +63,10 @@ func ShufflePlaylist(amazonToken string, origPlaylistID string) (string, error) 
 		log.Fatalf("Unable to create a new playlist")
 		return "", err
 	}
-	err = AddTracksToPlaylist(amazonToken, newPlaylist.PlaylistID, *scrubbedTracks)
+	err = AddTracksToPlaylist(amazonToken, newPlaylist.ID, *scrubbedTracks)
 
 	if err != nil {
-		log.Fatalf("Unable to add tracks to new, suffled playlist: %v", newPlaylist.PlaylistID)
+		log.Fatalf("Unable to add tracks to new, suffled playlist: %v", newPlaylist.ID)
 		return "", err
 	}
 
@@ -126,9 +126,9 @@ func scrubTracks(tracks *apple.AppleResponse) *apple.AppleTrackRequest {
 }
 
 // This function calculates the pagination and how many times we have to call Apple Music
-func calculateOffset(trackCount int) int {
-	offsetCount := trackCount / 100
-	if trackCount%100 > 0 {
+func calculateOffset(trackCount int, grouping int) int {
+	offsetCount := trackCount / grouping
+	if trackCount%grouping > 0 {
 		offsetCount++
 	}
 	return offsetCount

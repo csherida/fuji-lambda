@@ -18,6 +18,7 @@ type Secret struct {
 	Value string
 }
 
+// Not a big deal to store this at a global level since it's universal for each request
 var secretMap = make(map[string]string)
 
 func getSecret(secretName string) string {
