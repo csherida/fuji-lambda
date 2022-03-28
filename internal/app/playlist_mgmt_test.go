@@ -120,6 +120,14 @@ func TestFindPlaylist(t *testing.T) {
 			want: "p.5x1WhOxAz9v",
 		},
 		{
+			name: "Find Johnny Cash playlist", // specific to Chris Sheridan's library
+			args: args{
+				amazonToken:      "amzn1.ask.account.testUser",
+				playlistNameRqst: "aerosmith",
+			},
+			want: "p.8WdGBtVokEbd",
+		},
+		{
 			name: "Negative Test", // specific to Chris Sheridan's library
 			args: args{
 				amazonToken:      "amzn1.ask.account.testUser",

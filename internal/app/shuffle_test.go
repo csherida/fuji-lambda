@@ -6,8 +6,9 @@ import (
 
 func TestShufflePlaylist(t *testing.T) {
 	type args struct {
-		amazonToken string
-		playlistID  string
+		amazonToken  string
+		playlistID   string
+		playlistName string
 	}
 	tests := []struct {
 		name    string
@@ -17,14 +18,15 @@ func TestShufflePlaylist(t *testing.T) {
 		{
 			name: "Shuffle Test and Write to New Playlist",
 			args: args{
-				amazonToken: "amzn1.ask.account.testUser",
-				playlistID:  "p.5x1WhOxAz9v", //"p.oOlRRflxbK9Q",
+				amazonToken:  "amzn1.ask.account.testUser",
+				playlistID:   "p.5x1WhOxAz9v", //"p.oOlRRflxbK9Q",
+				playlistName: "All Chill Tunes",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if newName, err := ShufflePlaylist(tt.args.amazonToken, tt.args.playlistID); (err != nil) != tt.wantErr {
+			if newName, err := ShufflePlaylist(tt.args.amazonToken, tt.args.playlistID, tt.args.playlistName); (err != nil) != tt.wantErr {
 				t.Errorf("ShufflePlaylist() error = %v, wantErr %v", err, tt.wantErr)
 				t.Errorf("Unable to create new playlist %v", newName)
 			}

@@ -9,7 +9,7 @@ import (
 )
 
 // This function is the primary orchestrator for getting tracks, shuffling and writing to a new Playlist
-func ShufflePlaylist(amazonToken string, origPlaylistID string) (string, error) {
+func ShufflePlaylist(amazonToken string, origPlaylistID string, origPlaylistName string) (string, error) {
 
 	log.Printf("Shuffling playlist %v", origPlaylistID)
 
@@ -52,13 +52,11 @@ func ShufflePlaylist(amazonToken string, origPlaylistID string) (string, error) 
 		})
 	}
 
-	//TODO: Lookup playlist ID by name
-
 	scrubbedTracks = shuffle(scrubbedTracks)
 
 	// TODO: check that the Fuji folder exists
 	// TODO: feed in name of requested playlist
-	newPlaylist, err := CreatePlaylist(amazonToken, "All Chill Tunes")
+	newPlaylist, err := CreatePlaylist(amazonToken, origPlaylistName)
 	if err != nil {
 		log.Fatalf("Unable to create a new playlist")
 		return "", err

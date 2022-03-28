@@ -33,15 +33,15 @@ func HandleNumberOfPlaylistsIntent(request alexa2.Request) alexa2.Response {
 func HandleShuffleIntent(request alexa2.Request) alexa2.Response {
 	var builder alexa2.SSMLBuilder
 
-	playlistName := strings.ToLower(request.Body.Intent.Slots["playlistName"].Value)
-	playlistID := app.FindPlaylist(request.Session.User.UserID, playlistName)
+	playlistName := request.Body.Intent.Slots["playlistName"].Value
+	playlistID := app.FindPlaylist(request.Session.User.UserID, strings.ToLower(playlistName))
 
 	if playlistID == "" {
 		builder.Say("Apologies.  I am unable to to find the playlist " + playlistName)
 		return alexa2.NewSSMLResponse("Playlist Shuffled", builder.Build())
 	}
 
-	newName, err := app.ShufflePlaylist(request.Session.User.UserID, playlistID)
+	newName, err := app.ShufflePlaylist(request.Session.User.UserID, playlistID, playlistName)
 	if err != nil {
 		builder.Say("Apologies.  I am unable to shuffle the playlist at this moment.")
 		return alexa2.NewSSMLResponse("Playlist Shuffled", builder.Build())
