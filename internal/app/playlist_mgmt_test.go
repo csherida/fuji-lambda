@@ -100,3 +100,39 @@ func TestGetPlaylists(t *testing.T) {
 		})
 	}
 }
+
+func TestFindPlaylist(t *testing.T) {
+	type args struct {
+		amazonToken      string
+		playlistNameRqst string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Find Chill Tunes playlist", // specific to Chris Sheridan's library
+			args: args{
+				amazonToken:      "amzn1.ask.account.testUser",
+				playlistNameRqst: "All Chill Tunes",
+			},
+			want: "p.5x1WhOxAz9v",
+		},
+		{
+			name: "Negative Test", // specific to Chris Sheridan's library
+			args: args{
+				amazonToken:      "amzn1.ask.account.testUser",
+				playlistNameRqst: "Bogus Bogus Bogus",
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FindPlaylist(tt.args.amazonToken, tt.args.playlistNameRqst); got != tt.want {
+				t.Errorf("FindPlaylist() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

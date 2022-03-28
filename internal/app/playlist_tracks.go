@@ -33,7 +33,7 @@ func GetPlaylistTracks(amazonToken string, playlistID string, pageOffset ...int)
 
 	responseObject, err := fetchAppleMusicData(amazonToken, url)
 	if err != nil {
-		log.Fatalf("Unable to shuffle playlist for playlist ID: %v", playlistID)
+		log.Printf("Unable to shuffle playlist for playlist ID: %v", playlistID)
 		return nil, err
 	}
 

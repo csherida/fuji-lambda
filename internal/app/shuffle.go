@@ -101,7 +101,7 @@ func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*a
 	// Call function to retrieve full data set
 	tracks, err := GetPlaylistTracks(amazonToken, origPlaylistID, offset)
 	if err != nil {
-		log.Fatalf("Unable to shuffle and scrub playlist for playlist ID: %v", origPlaylistID)
+		log.Printf("Unable to shuffle and scrub playlist for playlist ID: %v", origPlaylistID)
 		return nil, err
 	}
 

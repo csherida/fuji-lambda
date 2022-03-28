@@ -15,6 +15,23 @@ import (
 	"time"
 )
 
+// This function takes in the user's utterance in Alexa and looks in the list of playlists for it
+// TODO: Perform fuzzy matching
+func FindPlaylist(amazonToken string, playlistNameRqst string) string {
+	playlistID := ""
+	playlists, err := GetPlaylists(amazonToken)
+	if err != nil {
+		log.Fatalf("Error finding playlist %v", playlistNameRqst)
+		return ""
+	}
+	for _, playlist := range playlists.FujiPlaylist {
+		if playlist.Name == playlistNameRqst {
+			playlistID = playlist.ID
+		}
+	}
+	return playlistID
+}
+
 func GetPlaylistCount(amazonToken string) int {
 
 	url := "https://api.music.apple.com/v1/me/library/playlists"
@@ -58,7 +75,7 @@ func GetPlaylists(amazonToken string) (*models.FujiPlaylists, error) {
 			}
 			// While slice appending is likely thread-safe, giving a dedicated memory space just in case
 			tracksMap.Store(idx, newPlaylists.FujiPlaylist)
-			log.Printf("Received playlists for offset %v.", i)
+			log.Printf("Received playlists for offset %v.", idx)
 			wg.Done()
 		}(i)
 	}
@@ -145,6 +162,9 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 
 	if (err != nil) || (resp.StatusCode >= 400) {
 		log.Println("Error on response trying to create a playlist.\n[ERROR] -", err)
+		if err == nil {
+			err = errors.New("Received a status code of " + strconv.Itoa(resp.StatusCode) + " for " + url)
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -155,7 +175,6 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 		return nil, err
 	}
 
-	log.Println("Length of body response: " + strconv.Itoa(len(body)))
 	var responseObject apple.AppleResponse
 	json.Unmarshal(body, &responseObject)
 
