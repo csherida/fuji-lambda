@@ -2,6 +2,7 @@ package app
 
 import (
 	"fuji-alexa/internal/models/apple"
+	models "fuji-alexa/internal/models/fuji"
 	"log"
 	"math/rand"
 	"sync"
@@ -9,12 +10,12 @@ import (
 )
 
 // This function is the primary orchestrator for getting tracks, shuffling and writing to a new Playlist
-func ShufflePlaylist(amazonToken string, origPlaylistID string, origPlaylistName string) (string, error) {
+func ShufflePlaylist(acct *models.FujiAccount, origPlaylistID string, origPlaylistName string) (string, error) {
 
 	log.Printf("Shuffling playlist %v", origPlaylistID)
 
 	// Get tracks, scrub and shuffle
-	tracks, err := getTracks(amazonToken, origPlaylistID)
+	tracks, err := getTracks(acct, origPlaylistID)
 	scrubbedTracks := scrubTracks(tracks)
 	scrubbedTracks = shuffle(scrubbedTracks)
 
@@ -28,15 +29,15 @@ func ShufflePlaylist(amazonToken string, origPlaylistID string, origPlaylistName
 		for i := 1; i < offsetCount; i++ {
 			wg.Add(1)
 			go func(idx int) {
-				newTracks, err := getTracks(amazonToken, origPlaylistID, idx*100)
+				newTracks, err := getTracks(acct, origPlaylistID, idx*100)
 				if err != nil {
-					log.Fatalf("Unable to rtrieve tracks for offset %v in playlist %v", i, origPlaylistID)
+					log.Fatalf("Unable to rtrieve tracks for offset %v in playlist %v", idx, origPlaylistID)
 					panic(err)
 				}
 				scrubbedNewTracks := scrubTracks(newTracks)
 				//scrubbedTracks.Data = append(scrubbedTracks.Data, scrubbedNewTracks.Data...)
 				tracksMap.Store(idx, scrubbedNewTracks.Data)
-				log.Printf("Received tracks for offset %v in playlist %v", i, origPlaylistID)
+				log.Printf("Received tracks for offset %v in playlist %v", idx, origPlaylistID)
 				wg.Done()
 			}(i)
 		}
@@ -56,12 +57,12 @@ func ShufflePlaylist(amazonToken string, origPlaylistID string, origPlaylistName
 
 	// TODO: check that the Fuji folder exists
 	// TODO: feed in name of requested playlist
-	newPlaylist, err := CreatePlaylist(amazonToken, origPlaylistName)
+	newPlaylist, err := CreatePlaylist(acct, origPlaylistName)
 	if err != nil {
 		log.Fatalf("Unable to create a new playlist")
 		return "", err
 	}
-	err = AddTracksToPlaylist(amazonToken, newPlaylist.ID, *scrubbedTracks)
+	err = AddTracksToPlaylist(acct, newPlaylist.ID, *scrubbedTracks)
 
 	if err != nil {
 		log.Fatalf("Unable to add tracks to new, suffled playlist: %v", newPlaylist.ID)
@@ -88,7 +89,7 @@ func shuffle(tracks *apple.AppleTrackRequest) *apple.AppleTrackRequest {
 }
 
 // This function will get the playlist tracks and scrub it so only IDs are returned
-func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*apple.AppleResponse, error) {
+func getTracks(acct *models.FujiAccount, origPlaylistID string, pageOffset ...int) (*apple.AppleResponse, error) {
 
 	// See if pagination is required
 	offset := 0
@@ -97,7 +98,7 @@ func getTracks(amazonToken string, origPlaylistID string, pageOffset ...int) (*a
 	}
 
 	// Call function to retrieve full data set
-	tracks, err := GetPlaylistTracks(amazonToken, origPlaylistID, offset)
+	tracks, err := GetPlaylistTracks(acct, origPlaylistID, offset)
 	if err != nil {
 		log.Printf("Unable to shuffle and scrub playlist for playlist ID: %v", origPlaylistID)
 		return nil, err

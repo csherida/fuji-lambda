@@ -28,7 +28,8 @@ func TestCreatePlaylist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CreatePlaylist(tt.args.amazonToken, tt.args.origPlaylistName)
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			got, err := CreatePlaylist(acct, tt.args.origPlaylistName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreatePlaylist() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -59,7 +60,8 @@ func TestGetPlaylistCount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetPlaylistCount(tt.args.amazonToken); got < tt.want {
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			if got := GetPlaylistCount(acct); got < tt.want {
 				t.Errorf("GetPlaylistCount() = %v, want %v", got, tt.want)
 			}
 		})
@@ -86,7 +88,8 @@ func TestGetPlaylists(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetPlaylists(tt.args.amazonToken)
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			got, err := GetPlaylists(acct)
 			for _, playlist := range got.FujiPlaylist {
 				log.Printf("%v %v", playlist.ID, playlist.Name)
 			}
@@ -138,7 +141,8 @@ func TestFindPlaylist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FindPlaylist(tt.args.amazonToken, tt.args.playlistNameRqst); got != tt.want {
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			if got := FindPlaylist(acct, tt.args.playlistNameRqst); got != tt.want {
 				t.Errorf("FindPlaylist() = %v, want %v", got, tt.want)
 			}
 		})

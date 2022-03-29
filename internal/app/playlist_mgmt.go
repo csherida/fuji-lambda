@@ -18,9 +18,9 @@ import (
 
 // This function takes in the user's utterance in Alexa and looks in the list of playlists for it
 // TODO: Perform fuzzy matching
-func FindPlaylist(amazonToken string, playlistNameRqst string) string {
+func FindPlaylist(acct *models.FujiAccount, playlistNameRqst string) string {
 	playlistID := ""
-	playlists, err := GetPlaylists(amazonToken)
+	playlists, err := GetPlaylists(acct)
 	if err != nil {
 		log.Fatalf("Error finding playlist %v", playlistNameRqst)
 		return ""
@@ -33,11 +33,11 @@ func FindPlaylist(amazonToken string, playlistNameRqst string) string {
 	return playlistID
 }
 
-func GetPlaylistCount(amazonToken string) int {
+func GetPlaylistCount(acct *models.FujiAccount) int {
 
 	url := "https://api.music.apple.com/v1/me/library/playlists"
 
-	responseObject, err := fetchAppleMusicData(amazonToken, url)
+	responseObject, err := fetchAppleMusicData(acct, url)
 	if err != nil {
 		log.Fatalf("Unalbe to get user's playlist count for %v\n", err)
 		return 0
@@ -46,10 +46,10 @@ func GetPlaylistCount(amazonToken string) int {
 	return responseObject.Meta.Total
 }
 
-func GetPlaylists(amazonToken string) (*models.FujiPlaylists, error) {
+func GetPlaylists(acct *models.FujiAccount) (*models.FujiPlaylists, error) {
 
 	// Make the initial call
-	fujiPlaylists, err := getPlaylistsFromApple(amazonToken, 0)
+	fujiPlaylists, err := getPlaylistsFromApple(acct, 0)
 	if err != nil {
 		log.Fatalf("Unalbe to get user's playlist for %v\n", err)
 		return nil, err
@@ -69,7 +69,7 @@ func GetPlaylists(amazonToken string) (*models.FujiPlaylists, error) {
 	for i := 1; i < offsetCount; i++ {
 		wg.Add(1)
 		go func(idx int) {
-			newPlaylists, err := getPlaylistsFromApple(amazonToken, idx*25)
+			newPlaylists, err := getPlaylistsFromApple(acct, idx*25)
 			if err != nil {
 				log.Fatalf("Unable to rtrieve playlist for offset %v", i)
 				panic(err)
@@ -94,7 +94,7 @@ func GetPlaylists(amazonToken string) (*models.FujiPlaylists, error) {
 	return fujiPlaylists, nil
 }
 
-func getPlaylistsFromApple(amazonToken string, offset int) (*models.FujiPlaylists, error) {
+func getPlaylistsFromApple(acct *models.FujiAccount, offset int) (*models.FujiPlaylists, error) {
 
 	// Construct the URL
 	url := "https://api.music.apple.com/v1/me/library/playlists"
@@ -103,7 +103,7 @@ func getPlaylistsFromApple(amazonToken string, offset int) (*models.FujiPlaylist
 	}
 
 	// Call Apple's APIs
-	responseObject, err := fetchAppleMusicData(amazonToken, url)
+	responseObject, err := fetchAppleMusicData(acct, url)
 	if err != nil {
 		log.Fatalf("Unalbe to get user's playlist for %v\n", err)
 		return nil, err
@@ -124,7 +124,7 @@ func getPlaylistsFromApple(amazonToken string, offset int) (*models.FujiPlaylist
 	return &fujiPlaylists, nil
 }
 
-func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPlaylist, error) {
+func CreatePlaylist(acct *models.FujiAccount, origPlaylistName string) (*models.FujiPlaylist, error) {
 	// Create a Bearer string by appending string access token
 	var secret = getSecret("FujiAppleMusicToken")
 	if secret == "" {
@@ -132,9 +132,6 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 		return nil, errors.New("apple music token is blank")
 	}
 	var bearer = "Bearer " + secret
-
-	// Get the Apple User Token associated with this amazon user token
-	var appleUserToken = getAppleUserToken(amazonToken)
 
 	// Setup request body
 	// TODO: Do a literal instantiation of playlist request
@@ -158,7 +155,7 @@ func CreatePlaylist(amazonToken string, origPlaylistName string) (*models.FujiPl
 
 	// add authorization header and user token to the req
 	req.Header.Add("Authorization", bearer)
-	req.Header.Add("Music-User-Token", appleUserToken)
+	req.Header.Add("Music-User-Token", acct.AppleToken)
 
 	// Send req using http Client
 	client := &http.Client{}

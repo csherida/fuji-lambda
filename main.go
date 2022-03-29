@@ -23,25 +23,40 @@ func HandleFavoriteAlbumIntent(request alexa2.Request) alexa2.Response {
 
 func HandleNumberOfPlaylistsIntent(request alexa2.Request) alexa2.Response {
 	var builder alexa2.SSMLBuilder
-	count := app.GetPlaylistCount(request.Session.User.UserID)
-	builder.Say("You have ")
-	builder.Say(strconv.Itoa(count))
-	builder.Say(" playlists in your Apple Music Library")
+	acct, err := app.GetFujiAccount(request.Session.User.UserID)
+	if (err != nil) && (strings.Contains(err.Error(), "not found")) {
+		builder.Say("Unfortunately, we cannot match your Amazon account with your Fuji registration.")
+	} else if err != nil {
+		builder.Say("Unfortunately, an error occurred while retrieving your Fuji account.")
+	} else {
+		count := app.GetPlaylistCount(acct)
+		builder.Say("You have ")
+		builder.Say(strconv.Itoa(count))
+		builder.Say(" playlists in your Apple Music Library")
+	}
 	return alexa2.NewSSMLResponse("Playlist Count", builder.Build())
 }
 
 func HandleShuffleIntent(request alexa2.Request) alexa2.Response {
 	var builder alexa2.SSMLBuilder
+	acct, err := app.GetFujiAccount(request.Session.User.UserID)
+	if (err != nil) && (strings.Contains(err.Error(), "not found")) {
+		builder.Say("Unfortunately, we cannot match your Amazon account with your Fuji registration.")
+		return alexa2.NewSSMLResponse("Fuji Shuffle", builder.Build())
+	} else if err != nil {
+		builder.Say("Unfortunately, an error occurred while retrieving your Fuji account.")
+		return alexa2.NewSSMLResponse("Fuji Shuffle", builder.Build())
+	}
 
 	playlistName := request.Body.Intent.Slots["playlistName"].Value
-	playlistID := app.FindPlaylist(request.Session.User.UserID, strings.ToLower(playlistName))
+	playlistID := app.FindPlaylist(acct, strings.ToLower(playlistName))
 
 	if playlistID == "" {
 		builder.Say("Apologies.  I am unable to to find the playlist " + playlistName)
 		return alexa2.NewSSMLResponse("Playlist Shuffled", builder.Build())
 	}
 
-	newName, err := app.ShufflePlaylist(request.Session.User.UserID, playlistID, playlistName)
+	newName, err := app.ShufflePlaylist(acct, playlistID, playlistName)
 	if err != nil {
 		builder.Say("Apologies.  I am unable to shuffle the playlist at this moment.")
 		return alexa2.NewSSMLResponse("Playlist Shuffled", builder.Build())
@@ -59,7 +74,7 @@ func HandleHelpIntent(request alexa2.Request) alexa2.Response {
 	builder.Say("What are my favorite albums.")
 	builder.Pause("1000")
 	builder.Say("Shuffle my playlist.")
-	return alexa2.NewSSMLResponse("Fuji Music Help", builder.Build())
+	return alexa2.NewSSMLResponse("Fuji Shuffle", builder.Build())
 }
 
 func HandleAboutIntent(request alexa2.Request) alexa2.Response {

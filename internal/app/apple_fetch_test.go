@@ -25,7 +25,8 @@ func Test_fetchAppleMusicData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fetchAppleMusicData(tt.args.amazonToken, tt.args.url)
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			got, err := fetchAppleMusicData(acct, tt.args.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchAppleMusicData() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fuji-alexa/internal/models/apple"
+	models "fuji-alexa/internal/models/fuji"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-func postAppleMusicData(amazonToken string, url string, tracks apple.AppleTrackRequest) error {
+func postAppleMusicData(acct *models.FujiAccount, url string, tracks apple.AppleTrackRequest) error {
 
 	// Create a Bearer string by appending string access token
 	var secret = getSecret("FujiAppleMusicToken")
@@ -20,13 +21,10 @@ func postAppleMusicData(amazonToken string, url string, tracks apple.AppleTrackR
 	}
 	var bearer = "Bearer " + secret
 
-	// Get the Apple User Token associated with this amazon user token
-	var appleUserToken = getAppleUserToken(amazonToken)
-
 	// Setup request body
 	reqBody, err := json.Marshal(tracks)
 	if err != nil {
-		log.Fatalf("Unable to marshal tracks for Amazon Token %v with URL: %v", amazonToken, url)
+		log.Fatalf("Unable to marshal tracks for Amazon Token %v with URL: %v", acct.AmazonToken, url)
 	}
 
 	// Create a new request using http
@@ -34,7 +32,7 @@ func postAppleMusicData(amazonToken string, url string, tracks apple.AppleTrackR
 
 	// add authorization header and user token to the req
 	req.Header.Add("Authorization", bearer)
-	req.Header.Add("Music-User-Token", appleUserToken)
+	req.Header.Add("Music-User-Token", acct.AppleToken)
 
 	// Send req using http Client
 	client := &http.Client{}

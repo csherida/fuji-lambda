@@ -2,29 +2,23 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fuji-alexa/internal/models/fuji"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
-// TODO: this is very dangerous to have at a global variable.  Need to create a map for each user.
-var appleUserToken string
-
-func getAppleUserToken(amazonToken string) string {
-
-	if appleUserToken != "" {
-		return appleUserToken
-	}
+func GetFujiAccount(amazonToken string) (*models.FujiAccount, error) {
 
 	url := "https://ff7lyzbjr9.execute-api.us-east-1.amazonaws.com/prod/fujiaccount?amazon-token=" + amazonToken
 
 	// Create a Bearer string by appending string access token
 	var apiKey = getSecret("FujiAccountAPIKey")
 	if apiKey == "" {
-		log.Println("Fuji Account API Key is blank.")
-		//TODO: Add error return
-		return ""
+		log.Printf("Unable to get Fuji API Key from secrets management.")
+		return nil, errors.New("failed to get Fuji API Key")
 	}
 
 	// Create a new request using http
@@ -37,9 +31,16 @@ func getAppleUserToken(amazonToken string) string {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	//TODO: Handle 401 errors
 	if err != nil {
 		log.Println("Error on response.\n[ERROR] -", err)
+		return nil, err
+	}
+	if resp.StatusCode == 404 {
+		log.Println("Unable to find Fuji account for Amazon user: ", amazonToken)
+		return nil, errors.New("user not found")
+	} else if resp.StatusCode >= 400 {
+		log.Println("Received error code: ", strconv.Itoa(resp.StatusCode))
+		return nil, errors.New("error fetching Fuji account")
 	}
 	defer resp.Body.Close()
 
@@ -51,9 +52,6 @@ func getAppleUserToken(amazonToken string) string {
 	var responseObject models.FujiAccount
 	json.Unmarshal(body, &responseObject)
 
-	// Cache value
-	appleUserToken = responseObject.AppleToken
-
 	//TODO: Handle nulls and empty strings
-	return responseObject.AppleToken
+	return &responseObject, nil
 }

@@ -2,22 +2,23 @@ package app
 
 import (
 	"fuji-alexa/internal/models/apple"
+	models "fuji-alexa/internal/models/fuji"
 	"log"
 	"strconv"
 )
 
-func AddTracksToPlaylist(amazonToken string, playlistID string, tracks apple.AppleTrackRequest) error {
+func AddTracksToPlaylist(acct *models.FujiAccount, playlistID string, tracks apple.AppleTrackRequest) error {
 
 	url := "https://api.music.apple.com/v1/me/library/playlists/" + playlistID + "/tracks"
-	err := postAppleMusicData(amazonToken, url, tracks)
+	err := postAppleMusicData(acct, url, tracks)
 	if err != nil {
-		log.Fatalf("Unable to add tracks for Amazon Token %v and playlist %v.", amazonToken, playlistID)
+		log.Fatalf("Unable to add tracks for Amazon Token %v and playlist %v.", acct.AmazonToken, playlistID)
 		return err
 	}
 	return nil
 }
 
-func GetPlaylistTracks(amazonToken string, playlistID string, pageOffset ...int) (*apple.AppleResponse, error) {
+func GetPlaylistTracks(acct *models.FujiAccount, playlistID string, pageOffset ...int) (*apple.AppleResponse, error) {
 
 	// See if pagination is required
 	offset := 0
@@ -31,7 +32,7 @@ func GetPlaylistTracks(amazonToken string, playlistID string, pageOffset ...int)
 		url += "?offset=" + strconv.Itoa(offset)
 	}
 
-	responseObject, err := fetchAppleMusicData(amazonToken, url)
+	responseObject, err := fetchAppleMusicData(acct, url)
 	if err != nil {
 		log.Printf("Unable to shuffle playlist for playlist ID: %v", playlistID)
 		return nil, err

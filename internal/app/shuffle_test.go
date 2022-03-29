@@ -26,7 +26,8 @@ func TestShufflePlaylist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if newName, err := ShufflePlaylist(tt.args.amazonToken, tt.args.playlistID, tt.args.playlistName); (err != nil) != tt.wantErr {
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			if newName, err := ShufflePlaylist(acct, tt.args.playlistID, tt.args.playlistName); (err != nil) != tt.wantErr {
 				t.Errorf("ShufflePlaylist() error = %v, wantErr %v", err, tt.wantErr)
 				t.Errorf("Unable to create new playlist %v", newName)
 			}
@@ -106,7 +107,8 @@ func Test_getTracks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getTracks(tt.args.amazonToken, tt.args.origPlaylistID, tt.args.pageOffset...)
+			acct, _ := GetFujiAccount(tt.args.amazonToken)
+			got, err := getTracks(acct, tt.args.origPlaylistID, tt.args.pageOffset...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getTracks() error = %v, wantErr %v", err, tt.wantErr)
 				return
